@@ -64,7 +64,6 @@ import org.springframework.web.method.HandlerMethod;
  * filter to certain content types (e.g. images), or to all requests.
  *
  * @author Juergen Hoeller
- * @since 20.06.2003
  * @see HandlerExecutionChain#getInterceptors
  * @see org.springframework.web.servlet.handler.HandlerInterceptorAdapter
  * @see org.springframework.web.servlet.handler.AbstractHandlerMapping#setInterceptors
@@ -72,10 +71,13 @@ import org.springframework.web.method.HandlerMethod;
  * @see org.springframework.web.servlet.i18n.LocaleChangeInterceptor
  * @see org.springframework.web.servlet.theme.ThemeChangeInterceptor
  * @see javax.servlet.Filter
+ * @since 20.06.2003
  */
 public interface HandlerInterceptor {
 
 	/**
+	 * 拦截处理器，在 {@link HandlerAdapter#handle(HttpServletRequest, HttpServletResponse, Object)} 执行之前
+	 * <p>
 	 * Intercept the execution of a handler. Called after HandlerMapping determined
 	 * an appropriate handler object, but before HandlerAdapter invokes the handler.
 	 * <p>DispatcherServlet processes a handler in an execution chain, consisting
@@ -86,9 +88,10 @@ public interface HandlerInterceptor {
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
 	 * <p>The default implementation returns {@code true}.
-	 * @param request current HTTP request
+	 *
+	 * @param request  current HTTP request
 	 * @param response current HTTP response
-	 * @param handler chosen handler to execute, for type and/or instance evaluation
+	 * @param handler  chosen handler to execute, for type and/or instance evaluation
 	 * @return {@code true} if the execution chain should proceed with the
 	 * next interceptor or the handler itself. Else, DispatcherServlet assumes
 	 * that this interceptor has already dealt with the response itself.
@@ -101,6 +104,8 @@ public interface HandlerInterceptor {
 	}
 
 	/**
+	 * 拦截处理器，在 {@link HandlerAdapter#handle(HttpServletRequest, HttpServletResponse, Object)} 执行成功之后
+	 * <p>
 	 * Intercept the execution of a handler. Called after HandlerAdapter actually
 	 * invoked the handler, but before the DispatcherServlet renders the view.
 	 * Can expose additional model objects to the view via the given ModelAndView.
@@ -112,19 +117,23 @@ public interface HandlerInterceptor {
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
 	 * <p>The default implementation is empty.
-	 * @param request current HTTP request
-	 * @param response current HTTP response
-	 * @param handler handler (or {@link HandlerMethod}) that started asynchronous
-	 * execution, for type and/or instance examination
+	 *
+	 * @param request      current HTTP request
+	 * @param response     current HTTP response
+	 * @param handler      handler (or {@link HandlerMethod}) that started asynchronous
+	 *                     execution, for type and/or instance examination
 	 * @param modelAndView the {@code ModelAndView} that the handler returned
-	 * (can also be {@code null})
+	 *                     (can also be {@code null})
 	 * @throws Exception in case of errors
 	 */
 	default void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-			@Nullable ModelAndView modelAndView) throws Exception {
+							@Nullable ModelAndView modelAndView) throws Exception {
 	}
 
 	/**
+	 * 拦截处理器，在 {@link HandlerAdapter} 执行完之后，无论成功还是失败
+	 * 并且，只有 {@link #preHandle(HttpServletRequest, HttpServletResponse, Object)} 执行成功之后，才会被执行
+	 * <p>
 	 * Callback after completion of request processing, that is, after rendering
 	 * the view. Will be called on any outcome of handler execution, thus allows
 	 * for proper resource cleanup.
@@ -137,15 +146,16 @@ public interface HandlerInterceptor {
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
 	 * <p>The default implementation is empty.
-	 * @param request current HTTP request
+	 *
+	 * @param request  current HTTP request
 	 * @param response current HTTP response
-	 * @param handler handler (or {@link HandlerMethod}) that started asynchronous
-	 * execution, for type and/or instance examination
-	 * @param ex exception thrown on handler execution, if any
+	 * @param handler  handler (or {@link HandlerMethod}) that started asynchronous
+	 *                 execution, for type and/or instance examination
+	 * @param ex       exception thrown on handler execution, if any
 	 * @throws Exception in case of errors
 	 */
 	default void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
-			@Nullable Exception ex) throws Exception {
+								 @Nullable Exception ex) throws Exception {
 	}
 
 }

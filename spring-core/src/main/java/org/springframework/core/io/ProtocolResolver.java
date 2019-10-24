@@ -19,6 +19,8 @@ package org.springframework.core.io;
 import org.springframework.lang.Nullable;
 
 /**
+ * 使用指定的 ResourceLoader ，解析指定的 location 。
+ * 若成功，则返回对应的 Resource 。
  * A resolution strategy for protocol-specific resource handles.
  *
  * <p>Used as an SPI for {@link DefaultResourceLoader}, allowing for
@@ -26,8 +28,8 @@ import org.springframework.lang.Nullable;
  * implementation (or application context implementation).
  *
  * @author Juergen Hoeller
- * @since 4.3
  * @see DefaultResourceLoader#addProtocolResolver
+ * @since 4.3
  */
 @FunctionalInterface
 public interface ProtocolResolver {
@@ -35,7 +37,8 @@ public interface ProtocolResolver {
 	/**
 	 * Resolve the given location against the given resource loader
 	 * if this implementation's protocol matches.
-	 * @param location the user-specified resource location
+	 *
+	 * @param location       the user-specified resource location
 	 * @param resourceLoader the associated resource loader
 	 * @return a corresponding {@code Resource} handle if the given location
 	 * matches this resolver's protocol, or {@code null} otherwise

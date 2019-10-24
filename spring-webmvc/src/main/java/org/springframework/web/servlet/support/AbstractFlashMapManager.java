@@ -89,17 +89,21 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	@Override
 	@Nullable
 	public final FlashMap retrieveAndUpdate(HttpServletRequest request, HttpServletResponse response) {
+		//从存储介质中获取List<FlashMap>，是模板方法，子类实现
 		List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 		if (CollectionUtils.isEmpty(allFlashMaps)) {
 			return null;
 		}
 
+		//检测过期的flashMap,并将它们设置到mapsToRemove变量
 		List<FlashMap> mapsToRemove = getExpiredFlashMaps(allFlashMaps);
+		//获取与当前request匹配的flashMap,并设置到match变量
 		FlashMap match = getMatchingFlashMap(allFlashMaps, request);
+		//如果有匹配的则将其添加到mapsToRemove
 		if (match != null) {
 			mapsToRemove.add(match);
 		}
-
+		//删除mapsToRemove中保存的变量
 		if (!mapsToRemove.isEmpty()) {
 			Object mutex = getFlashMapsMutex(request);
 			if (mutex != null) {
@@ -110,8 +114,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 						updateFlashMaps(allFlashMaps, request, response);
 					}
 				}
-			}
-			else {
+			} else {
 				allFlashMaps.removeAll(mapsToRemove);
 				updateFlashMaps(allFlashMaps, request, response);
 			}
@@ -135,6 +138,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 
 	/**
 	 * Return a FlashMap contained in the given list that matches the request.
+	 *
 	 * @return a matching FlashMap or {@code null}
 	 */
 	@Nullable
@@ -160,6 +164,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	 * Uses the expected request path and query parameters saved in the FlashMap.
 	 */
 	protected boolean isFlashMapForRequest(FlashMap flashMap, HttpServletRequest request) {
+		//检查目标路径，如果FlashMap中保存的路径和Request不匹配则返回false
 		String expectedPath = flashMap.getTargetRequestPath();
 		if (expectedPath != null) {
 			String requestUri = getUrlPathHelper().getOriginatingRequestUri(request);
@@ -167,6 +172,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 				return false;
 			}
 		}
+		//检查参数，如果FlashMap中保存的url参数在Request中没有则返回false
 		MultiValueMap<String, String> actualParams = getOriginatingRequestParams(request);
 		MultiValueMap<String, String> expectedParams = flashMap.getTargetRequestParams();
 		for (String expectedName : expectedParams.keySet()) {
@@ -194,21 +200,25 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 			return;
 		}
 
+		//首先对flashMap中的转发地址和参数进行编码，这里的request主要用来获取当前的编码方式
 		String path = decodeAndNormalizePath(flashMap.getTargetRequestPath(), request);
 		flashMap.setTargetRequestPath(path);
 
+		//设置有效期
 		flashMap.startExpirationPeriod(getFlashMapTimeout());
-
+		//用于获取互斥变量，是模板方法，如果子类返回值不为null则同步执行，否则不需要同步
 		Object mutex = getFlashMapsMutex(request);
 		if (mutex != null) {
 			synchronized (mutex) {
+				//取回保存的List<FlashMap>,如果没获取到则新建一个，然后添加现有的flashMap
+				//retrieveFlashMaps方法用于获取List<FlashMap>,是模板方法，子类实现
 				List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 				allFlashMaps = (allFlashMaps != null ? allFlashMaps : new CopyOnWriteArrayList<>());
 				allFlashMaps.add(flashMap);
+				//将添加完的List<FlashMap>更新到存储介质，是模板方法，子类实现
 				updateFlashMaps(allFlashMaps, request, response);
 			}
-		}
-		else {
+		} else {
 			List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 			allFlashMaps = (allFlashMaps != null ? allFlashMaps : new LinkedList<>());
 			allFlashMaps.add(flashMap);
@@ -231,6 +241,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 
 	/**
 	 * Retrieve saved FlashMap instances from the underlying storage.
+	 *
 	 * @param request the current request
 	 * @return a List with FlashMap instances, or {@code null} if none found
 	 */
@@ -239,9 +250,10 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 
 	/**
 	 * Update the FlashMap instances in the underlying storage.
+	 *
 	 * @param flashMaps a (potentially empty) list of FlashMap instances to save
-	 * @param request the current request
-	 * @param response the current response
+	 * @param request   the current request
+	 * @param response  the current response
 	 */
 	protected abstract void updateFlashMaps(
 			List<FlashMap> flashMaps, HttpServletRequest request, HttpServletResponse response);
@@ -252,6 +264,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	 * <p>The default implementation returns a shared static mutex.
 	 * Subclasses are encouraged to return a more specific mutex, or
 	 * {@code null} to indicate that no synchronization is necessary.
+	 *
 	 * @param request the current request
 	 * @return the mutex to use (may be {@code null} if none applicable)
 	 * @since 4.0.3

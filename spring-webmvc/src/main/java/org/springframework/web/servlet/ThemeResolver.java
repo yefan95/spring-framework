@@ -39,30 +39,36 @@ import org.springframework.lang.Nullable;
  * <p>Use {@link org.springframework.web.servlet.support.RequestContext#getTheme()}
  * to retrieve the current theme in controllers or views, independent
  * of the actual resolution strategy.
+ * <p>
+ * 主题解析器接口
  *
  * @author Jean-Pierre Pawlak
  * @author Juergen Hoeller
- * @since 17.06.2003
  * @see org.springframework.ui.context.Theme
  * @see org.springframework.ui.context.ThemeSource
+ * @since 17.06.2003
  */
 public interface ThemeResolver {
 
 	/**
+	 * 从请求中，解析出使用的主题。例如，从请求头 User-Agent ，判断使用 PC 端，还是移动端的主题
 	 * Resolve the current theme name via the given request.
 	 * Should return a default theme as fallback in any case.
+	 *
 	 * @param request request to be used for resolution
 	 * @return the current theme name
 	 */
 	String resolveThemeName(HttpServletRequest request);
 
 	/**
+	 * 设置请求，所使用的主题。
 	 * Set the current theme name to the given one.
-	 * @param request request to be used for theme name modification
-	 * @param response response to be used for theme name modification
+	 *
+	 * @param request   request to be used for theme name modification
+	 * @param response  response to be used for theme name modification
 	 * @param themeName the new theme name ({@code null} or empty to reset it)
 	 * @throws UnsupportedOperationException if the ThemeResolver implementation
-	 * does not support dynamic changing of the theme
+	 *                                       does not support dynamic changing of the theme
 	 */
 	void setThemeName(HttpServletRequest request, @Nullable HttpServletResponse response, @Nullable String themeName);
 
