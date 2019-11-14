@@ -31,6 +31,8 @@ import org.springframework.web.servlet.ModelAndView;
  * include (and optionally exclude) path patterns to which the interceptor should apply.
  * Also provides matching logic to test if the interceptor applies to a given request path.
  *
+ * 实现 HandlerInterceptor 接口，支持地址匹配的 HandlerInterceptor 实现类
+ *
  * <p>A MappedInterceptor can be registered directly with any
  * {@link org.springframework.web.servlet.handler.AbstractHandlerMethodMapping
  * AbstractHandlerMethodMapping}. Furthermore, beans of type MappedInterceptor
@@ -45,14 +47,26 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public final class MappedInterceptor implements HandlerInterceptor {
 
+	/**
+	 * 匹配的路径
+	 */
 	@Nullable
 	private final String[] includePatterns;
 
+	/**
+	 * 不匹配的路径
+	 */
 	@Nullable
 	private final String[] excludePatterns;
 
+	/**
+	 * HandlerInterceptor 拦截器对象
+	 */
 	private final HandlerInterceptor interceptor;
 
+	/**
+	 * 路径匹配器
+	 */
 	@Nullable
 	private PathMatcher pathMatcher;
 
@@ -144,18 +158,23 @@ public final class MappedInterceptor implements HandlerInterceptor {
 	 */
 	public boolean matches(String lookupPath, PathMatcher pathMatcher) {
 		PathMatcher pathMatcherToUse = (this.pathMatcher != null) ? this.pathMatcher : pathMatcher;
+		// 先排重
 		if (this.excludePatterns != null) {
 			for (String pattern : this.excludePatterns) {
+				// 匹配
 				if (pathMatcherToUse.match(pattern, lookupPath)) {
 					return false;
 				}
 			}
 		}
+		// 特殊，如果包含为空，则默认就是包含
 		if (ObjectUtils.isEmpty(this.includePatterns)) {
 			return true;
 		}
+		// 后包含
 		else {
 			for (String pattern : this.includePatterns) {
+				// 匹配
 				if (pathMatcherToUse.match(pattern, lookupPath)) {
 					return true;
 				}
