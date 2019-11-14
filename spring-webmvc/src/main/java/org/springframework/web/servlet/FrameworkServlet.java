@@ -690,8 +690,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException(
 					"Fatal initialization error in servlet with name '" + getServletName() +
-							"': custom WebApplicationContext class [" + contextClass.getName() +
-							"] is not of type ConfigurableWebApplicationContext");
+					"': custom WebApplicationContext class [" + contextClass.getName() +
+					"] is not of type ConfigurableWebApplicationContext");
 		}
 		// <b> 创建 context 类的对象
 		ConfigurableWebApplicationContext wac =
@@ -827,8 +827,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			if (initializerContextClass != null && !initializerContextClass.isInstance(wac)) {
 				throw new ApplicationContextException(String.format(
 						"Could not apply context initializer [%s] since its generic parameter [%s] " +
-								"is not assignable from the type of application context used by this " +
-								"framework servlet: [%s]", initializerClass.getName(), initializerContextClass.getName(),
+						"is not assignable from the type of application context used by this " +
+						"framework servlet: [%s]", initializerClass.getName(), initializerContextClass.getName(),
 						wac.getClass().getName()));
 			}
 			return BeanUtils.instantiateClass(initializerClass, ApplicationContextInitializer.class);
@@ -926,11 +926,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// <1> 获得请求方法
 		HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
+		// <2.1> 处理 PATCH 请求
 		if (HttpMethod.PATCH == httpMethod || httpMethod == null) {
 			processRequest(request, response);
 		}
+		// <2.2> 调用父类，处理其它请求
 		else {
 			super.service(request, response);
 		}
@@ -992,9 +994,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// 如果 dispatchOptionsRequest 为 true ，则处理该请求
 		if (this.dispatchOptionsRequest || CorsUtils.isPreFlightRequest(request)) {
+			// 处理请求
 			processRequest(request, response);
+			// 如果响应 Header 包含 "Allow" ，则不需要交给父方法处理
 			if (response.containsHeader("Allow")) {
 				// Proper OPTIONS response coming from a handler - we're done.
 				return;
@@ -1002,6 +1006,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 
 		// Use response wrapper in order to always add PATCH to the allowed methods
+		// 调用父方法，并在响应 Header 的 "Allow" 增加 PATCH 的值
 		super.doOptions(request, new HttpServletResponseWrapper(response) {
 			@Override
 			public void setHeader(String name, String value) {
@@ -1021,14 +1026,17 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// 如果 dispatchTraceRequest 为 true ，则处理该请求
 		if (this.dispatchTraceRequest) {
+			// 处理请求
 			processRequest(request, response);
+			// 如果响应的内容类型为 "message/http" ，则不需要交给父方法处理
 			if ("message/http".equals(response.getContentType())) {
 				// Proper TRACE response coming from a handler - we're done.
 				return;
 			}
 		}
+		// 调用父方法
 		super.doTrace(request, response);
 	}
 
@@ -1039,39 +1047,49 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 */
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// <1> 记录当前时间，用于计算 web 请求的处理时间
 		long startTime = System.currentTimeMillis();
+		// <2> 记录异常
 		Throwable failureCause = null;
 
+		// <3> TODO zero
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
 
+		// <4> TODO zero
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 
+		// <5> TODO zero
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
 
+		// <6> TODO zero
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// <7> 执行真正的逻辑
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
+			// <8> TODO zero
 			failureCause = ex;
 			throw ex;
 		}
 		catch (Throwable ex) {
+			// <8> TODO zero
 			failureCause = ex;
 			throw new NestedServletException("Request processing failed", ex);
 		}
 
 		finally {
+			// <9> TODO zero
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
+			// <10> TODO zero
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
 			}
-
+			// <11> 打印请求日志，并且日志级别为 DEBUG
 			if (logger.isDebugEnabled()) {
 				if (failureCause != null) {
 					this.logger.debug("Could not complete request", failureCause);
@@ -1085,7 +1103,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					}
 				}
 			}
-
+			// <12> 发布 ServletRequestHandledEvent 事件
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
@@ -1115,7 +1133,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 */
 	@Nullable
 	protected ServletRequestAttributes buildRequestAttributes(HttpServletRequest request,
-															  @Nullable HttpServletResponse response, @Nullable RequestAttributes previousAttributes) {
+			@Nullable HttpServletResponse response, @Nullable RequestAttributes previousAttributes) {
 
 		if (previousAttributes == null || previousAttributes instanceof ServletRequestAttributes) {
 			return new ServletRequestAttributes(request, response);
@@ -1126,7 +1144,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	private void initContextHolders(HttpServletRequest request,
-									@Nullable LocaleContext localeContext, @Nullable RequestAttributes requestAttributes) {
+			@Nullable LocaleContext localeContext, @Nullable RequestAttributes requestAttributes) {
 
 		if (localeContext != null) {
 			LocaleContextHolder.setLocaleContext(localeContext, this.threadContextInheritable);
@@ -1140,7 +1158,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	private void resetContextHolders(HttpServletRequest request,
-									 @Nullable LocaleContext prevLocaleContext, @Nullable RequestAttributes previousAttributes) {
+			@Nullable LocaleContext prevLocaleContext, @Nullable RequestAttributes previousAttributes) {
 
 		LocaleContextHolder.setLocaleContext(prevLocaleContext, this.threadContextInheritable);
 		RequestContextHolder.setRequestAttributes(previousAttributes, this.threadContextInheritable);
@@ -1149,12 +1167,21 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 	}
 
+	/**
+	 * 发布请求处理事件，使用 ApplicationListener 监听 ServletRequestHandledEvent 事件
+	 *
+	 * @param request
+	 * @param response
+	 * @param startTime
+	 * @param failureCause
+	 */
 	private void publishRequestHandledEvent(HttpServletRequest request, HttpServletResponse response,
-											long startTime, @Nullable Throwable failureCause) {
-
+			long startTime, @Nullable Throwable failureCause) {
+		// 如果开启发布事件
 		if (this.publishEvents && this.webApplicationContext != null) {
 			// Whether or not we succeeded, publish an event.
 			long processingTime = System.currentTimeMillis() - startTime;
+			// 创建 ServletRequestHandledEvent 事件，并进行发布
 			this.webApplicationContext.publishEvent(
 					new ServletRequestHandledEvent(this,
 							request.getRequestURI(), request.getRemoteAddr(),
