@@ -23,6 +23,9 @@ import org.springframework.lang.Nullable;
 /**
  * Interface to be implemented by objects that can resolve views by name.
  *
+ * 实体解析器接口，根据视图名和国际化，获得最终的视图 View 对象
+ *
+ *
  * <p>View state doesn't change during the running of the application,
  * so implementations are free to cache views.
  *
@@ -39,6 +42,9 @@ public interface ViewResolver {
 
 	/**
 	 * Resolve the given view by name.
+	 *
+	 * 根据视图名和国际化，获得最终的 View 对象
+	 *
 	 * <p>Note: To allow for ViewResolver chaining, a ViewResolver should
 	 * return {@code null} if a view with the given name is not defined in it.
 	 * However, this is not required: Some ViewResolvers will always attempt

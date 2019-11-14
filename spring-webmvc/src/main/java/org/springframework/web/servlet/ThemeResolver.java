@@ -26,6 +26,8 @@ import org.springframework.lang.Nullable;
  * both theme resolution via the request and theme modification via
  * request and response.
  *
+ * 主题解析器接口
+ *
  * <p>This interface allows for implementations based on session,
  * cookies, etc. The default implementation is
  * {@link org.springframework.web.servlet.theme.FixedThemeResolver},
@@ -51,6 +53,9 @@ public interface ThemeResolver {
 	/**
 	 * Resolve the current theme name via the given request.
 	 * Should return a default theme as fallback in any case.
+	 *
+	 * 从请求中，解析出使用的主题。例如，从请求头 User-Agent ，判断使用 PC 端，还是移动端的主题
+	 *
 	 * @param request request to be used for resolution
 	 * @return the current theme name
 	 */
@@ -58,6 +63,9 @@ public interface ThemeResolver {
 
 	/**
 	 * Set the current theme name to the given one.
+	 *
+	 * 设置请求，所使用的主题
+	 *
 	 * @param request request to be used for theme name modification
 	 * @param response response to be used for theme name modification
 	 * @param themeName the new theme name ({@code null} or empty to reset it)
